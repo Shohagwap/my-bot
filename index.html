@@ -3,61 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Signal Bot UI</title>
+    <title>Quotex Automatic Signal Bot</title>
     <style>
-        body { background-color: #0d1117; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .bot-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 25px; width: 300px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .status-box { background: #010409; border: 1px solid #21262d; border-radius: 8px; padding: 15px; margin: 15px 0; }
-        .signal-btn { background: #238636; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .signal-btn:hover { background: #2ea043; }
-        #result { color: #2f81f7; font-size: 20px; font-weight: bold; margin: 10px 0; }
-        #confidence { color: #7ee787; font-size: 14px; }
-        #entry-time { color: #8b949e; font-size: 14px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0e14;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .bot-card {
+            background-color: #151d2a;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            border: 1px solid #232d3f;
+        }
+        .pair-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .timer {
+            font-size: 13px;
+            color: #8a99ad;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            background-color: #0b0e14;
+            border-radius: 12px;
+            padding: 18px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #1c2638;
+        }
+        .status-label {
+            font-size: 11px;
+            color: #5d6e85;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+        .signal {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 12px 0 8px 0;
+            letter-spacing: 0.5px;
+        }
+        .call { color: #22c55e; }
+        .put { color: #ef4444; }
+        .info {
+            font-size: 13px;
+            color: #22c55e;
+            font-weight: 600;
+        }
+        .btn {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            background-color: #1d4ed8;
+        }
     </style>
 </head>
 <body>
 
-<div class="bot-box">
-    <h3>USD/BDT (OTC)</h3>
-    <p>Next Candle: <span id="next-candle-timer">00:00</span></p>
+<div class="bot-card">
+    <div class="pair-title" id="pair-display">BRL/USD (OTC)</div>
+    <div class="timer" id="time-display">Next Candle: --:--</div>
 
     <div class="status-box">
-        <div id="status">STATUS: IDLE</div>
-        <div id="result">--</div>
-        <small id="confidence">Confidence: --%</small><br>
-        <small id="entry-time">Entry Time: --:--</small>
+        <div class="status-label" id="status-label">STATUS: READY</div>
+        <div class="signal" id="signal-display">PRESS GET SIGNAL</div>
+        <div class="info" id="confidence-display">Confidence: --%</div>
     </div>
 
-    <button class="signal-btn" onclick="getSignal()">GET SIGNAL</button>
+    <button class="btn" onclick="generateAutoSignal()">GET SIGNAL</button>
 </div>
 
 <script>
-    function getSignal() {
-        const directions = ["CALL (UP 🟢)", "PUT (DOWN 🔴)"];
-        const randomDirection = directions[Math.floor(Math.random() * directions.length)];
-        const randomConfidence = Math.floor(Math.random() * (95 - 75 + 1)) + 75;
-        
-        const now = new Date();
-        now.setMinutes(now.getMinutes() + 1);
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const entryTime = `${hours}:${minutes}`;
+    // BRL/USD (OTC) প্রথম রেখে সব অটো কারেন্সি লিস্ট
+    const otcPairs = [
+        "BRL/USD (OTC)", "USD/BRL (OTC)", "USD/MXN (OTC)", "NZD/CHF (OTC)", 
+        "AUD/CHF (OTC)", "USD/NGN (OTC)", "AUD/CAD (OTC)", "AUD/USD (OTC)", 
+        "GBP/USD (OTC)", "GBP/AUD (OTC)", "NZD/USD (OTC)", "EUR/GBP (OTC)", 
+        "EUR/AUD (OTC)", "EUR/USD (OTC)", "NZD/JPY (OTC)", "USD/CAD (OTC)", 
+        "USD/JPY (OTC)", "AUD/NZD (OTC)", "GBP/JPY (OTC)", "EUR/CHF (OTC)"
+    ];
 
-        document.getElementById("status").innerText = "STATUS: ACTIVE";
-        document.getElementById("result").innerText = randomDirection;
-        document.getElementById("confidence").innerText = "Confidence: " + randomConfidence + "%";
-        document.getElementById("entry-time").innerText = "Entry Time: " + entryTime;
+    function generateAutoSignal() {
+        const pairElement = document.getElementById("pair-display");
+        const signalElement = document.getElementById("signal-display");
+        const confidenceElement = document.getElementById("confidence-display");
+        const timeElement = document.getElementById("time-display");
+        const statusLabel = document.getElementById("status-label");
+
+        // স্ক্যানিং মোড
+        statusLabel.innerText = "STATUS: SCANNING";
+        signalElement.innerText = "SCANNING...";
+        signalElement.className = "signal";
+
+        setTimeout(() => {
+            // ১. অটোমেটিক র‍্যান্ডম পেয়ার সিলেক্ট
+            const randomPair = otcPairs[Math.floor(Math.random() * otcPairs.length)];
+            pairElement.innerText = randomPair;
+
+            // ২. অটোমেটিক সিগন্যাল (CALL/PUT)
+            const isCall = Math.random() > 0.5;
+            if (isCall) {
+                signalElement.innerText = "CALL (UP 🟢)";
+                signalElement.className = "signal call";
+            } else {
+                signalElement.innerText = "PUT (DOWN 🔴)";
+                signalElement.className = "signal put";
+            }
+
+            // ৩. অটোমেটিক কনফিডেন্স (৮২% - ৯৮%)
+            const confidence = Math.floor(Math.random() * 17) + 82;
+            confidenceElement.innerText = "Confidence: " + confidence + "%";
+
+            // ৪. অটোমেটিক সময় ও কাউন্টডাউন
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeElement.innerText = "Entry Time: " + hours + ":" + minutes;
+            statusLabel.innerText = "STATUS: ACTIVE";
+
+        }, 1200);
     }
-
-    setInterval(() => {
-        const now = new Date();
-        const seconds = 60 - now.getSeconds();
-        const timerText = seconds < 10 ? "00:0" + seconds : "00:" + seconds;
-        const timerElem = document.getElementById("next-candle-timer");
-        if(timerElem) timerElem.innerText = timerText;
-    }, 1000);
 </script>
 
 </body>
 </html>
-,
