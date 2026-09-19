@@ -20,27 +20,36 @@
             min-height: 100vh;
             padding: 15px;
         }
-        .bot-card {
-            background-color: #151d2a;
-            border-radius: 16px;
-            padding: 20px;
+        .bot-container {
             width: 100%;
             max-width: 360px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            text-align: center;
-            border: 1px solid #232d3f;
         }
         .select-box {
             width: 100%;
-            padding: 10px;
-            background-color: #0b0e14;
+            padding: 12px;
+            background-color: #151d2a;
             color: #ffffff;
             border: 1px solid #232d3f;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: bold;
             margin-bottom: 15px;
             outline: none;
+            cursor: pointer;
+        }
+        .bot-card {
+            background-color: #151d2a;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            border: 1px solid #232d3f;
+        }
+        .pair-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
         }
         .timer {
             font-size: 13px;
@@ -92,8 +101,8 @@
 </head>
 <body>
 
-<div class="bot-card">
-    <!-- কারেন্সি সিলেক্ট করার ড্রপডাউন মেনু -->
+<div class="bot-container">
+    <!-- কারেন্সি সিলেক্ট করার ড্রপডাউন অপশন -->
     <select id="currency-select" class="select-box">
         <option value="AUTO">🔄 Auto (Random Pairs)</option>
         <option value="BRL/USD (OTC)">BRL/USD (OTC)</option>
@@ -104,17 +113,21 @@
         <option value="USD/NGN (OTC)">USD/NGN (OTC)</option>
         <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
         <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+        <option value="EUR/AUD (OTC)">EUR/AUD (OTC)</option>
     </select>
 
-    <div class="timer" id="time-display">Next Candle: --:--</div>
+    <div class="bot-card">
+        <div class="pair-title" id="pair-display">BRL/USD (OTC)</div>
+        <div class="timer" id="time-display">Entry Time: --:--</div>
 
-    <div class="status-box">
-        <div class="status-label" id="status-label">STATUS: READY</div>
-        <div class="signal" id="signal-display">PRESS GET SIGNAL</div>
-        <div class="info" id="confidence-display">Confidence: --%</div>
+        <div class="status-box">
+            <div class="status-label" id="status-label">STATUS: READY</div>
+            <div class="signal" id="signal-display">PRESS GET SIGNAL</div>
+            <div class="info" id="confidence-display">Confidence: --%</div>
+        </div>
+
+        <button class="btn" onclick="generateSignal()">GET SIGNAL</button>
     </div>
-
-    <button class="btn" onclick="generateSignal()">GET SIGNAL</button>
 </div>
 
 <script>
@@ -122,11 +135,12 @@
         "BRL/USD (OTC)", "USD/BRL (OTC)", "USD/MXN (OTC)", "NZD/CHF (OTC)", 
         "AUD/CHF (OTC)", "USD/NGN (OTC)", "AUD/CAD (OTC)", "AUD/USD (OTC)", 
         "GBP/USD (OTC)", "GBP/AUD (OTC)", "NZD/USD (OTC)", "EUR/GBP (OTC)", 
-        "EUR/USD (OTC)", "USD/JPY (OTC)", "GBP/JPY (OTC)"
+        "EUR/USD (OTC)", "USD/JPY (OTC)", "GBP/JPY (OTC)", "EUR/AUD (OTC)"
     ];
 
     function generateSignal() {
         const selectElement = document.getElementById("currency-select");
+        const pairElement = document.getElementById("pair-display");
         const signalElement = document.getElementById("signal-display");
         const confidenceElement = document.getElementById("confidence-display");
         const timeElement = document.getElementById("time-display");
@@ -139,10 +153,12 @@
         setTimeout(() => {
             let chosenPair = selectElement.value;
 
-            // যদি Auto সিলেক্ট করা থাকে, তবে র্যান্ডম পেয়ার আসবে
+            // যদি Auto সিলেক্ট করা থাকে তবে র্যান্ডম পেয়ার আসবে, না হলে ড্রপডাউনের পেয়ারটি দেখাবে
             if (chosenPair === "AUTO") {
                 chosenPair = otcPairs[Math.floor(Math.random() * otcPairs.length)];
             }
+            
+            pairElement.innerText = chosenPair;
 
             // সিগন্যাল (CALL/PUT) জেনারেট
             const isCall = Math.random() > 0.5;
@@ -163,7 +179,7 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             timeElement.innerText = "Entry Time: " + hours + ":" + minutes;
-            statusLabel.innerText = "STATUS: ACTIVE (" + chosenPair + ")";
+            statusLabel.innerText = "STATUS: ACTIVE";
 
         }, 1000);
     }
