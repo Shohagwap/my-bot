@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotex Automatic Signal Bot</title>
+    <title>Quotex Trading Bot</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,29 +23,34 @@
         .bot-card {
             background-color: #151d2a;
             border-radius: 16px;
-            padding: 24px;
+            padding: 20px;
             width: 100%;
             max-width: 360px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             text-align: center;
             border: 1px solid #232d3f;
         }
-        .pair-title {
-            font-size: 22px;
-            font-weight: 700;
+        .select-box {
+            width: 100%;
+            padding: 10px;
+            background-color: #0b0e14;
             color: #ffffff;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
+            border: 1px solid #232d3f;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            outline: none;
         }
         .timer {
             font-size: 13px;
             color: #8a99ad;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .status-box {
             background-color: #0b0e14;
             border-radius: 12px;
-            padding: 18px 15px;
+            padding: 15px;
             margin-bottom: 20px;
             border: 1px solid #1c2638;
         }
@@ -59,8 +64,7 @@
         .signal {
             font-size: 22px;
             font-weight: 800;
-            margin: 12px 0 8px 0;
-            letter-spacing: 0.5px;
+            margin: 10px 0;
         }
         .call { color: #22c55e; }
         .put { color: #ef4444; }
@@ -74,24 +78,34 @@
             color: #ffffff;
             border: none;
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             font-size: 16px;
             font-weight: 700;
             border-radius: 10px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            transition: all 0.2s ease;
         }
         .btn:active {
             transform: scale(0.97);
-            background-color: #1d4ed8;
         }
     </style>
 </head>
 <body>
 
 <div class="bot-card">
-    <div class="pair-title" id="pair-display">BRL/USD (OTC)</div>
+    <!-- কারেন্সি সিলেক্ট করার ড্রপডাউন মেনু -->
+    <select id="currency-select" class="select-box">
+        <option value="AUTO">🔄 Auto (Random Pairs)</option>
+        <option value="BRL/USD (OTC)">BRL/USD (OTC)</option>
+        <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
+        <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
+        <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
+        <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+        <option value="USD/NGN (OTC)">USD/NGN (OTC)</option>
+        <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
+        <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+    </select>
+
     <div class="timer" id="time-display">Next Candle: --:--</div>
 
     <div class="status-box">
@@ -100,37 +114,37 @@
         <div class="info" id="confidence-display">Confidence: --%</div>
     </div>
 
-    <button class="btn" onclick="generateAutoSignal()">GET SIGNAL</button>
+    <button class="btn" onclick="generateSignal()">GET SIGNAL</button>
 </div>
 
 <script>
-    // BRL/USD (OTC) প্রথম রেখে সব অটো কারেন্সি লিস্ট
     const otcPairs = [
         "BRL/USD (OTC)", "USD/BRL (OTC)", "USD/MXN (OTC)", "NZD/CHF (OTC)", 
         "AUD/CHF (OTC)", "USD/NGN (OTC)", "AUD/CAD (OTC)", "AUD/USD (OTC)", 
         "GBP/USD (OTC)", "GBP/AUD (OTC)", "NZD/USD (OTC)", "EUR/GBP (OTC)", 
-        "EUR/AUD (OTC)", "EUR/USD (OTC)", "NZD/JPY (OTC)", "USD/CAD (OTC)", 
-        "USD/JPY (OTC)", "AUD/NZD (OTC)", "GBP/JPY (OTC)", "EUR/CHF (OTC)"
+        "EUR/USD (OTC)", "USD/JPY (OTC)", "GBP/JPY (OTC)"
     ];
 
-    function generateAutoSignal() {
-        const pairElement = document.getElementById("pair-display");
+    function generateSignal() {
+        const selectElement = document.getElementById("currency-select");
         const signalElement = document.getElementById("signal-display");
         const confidenceElement = document.getElementById("confidence-display");
         const timeElement = document.getElementById("time-display");
         const statusLabel = document.getElementById("status-label");
 
-        // স্ক্যানিং মোড
         statusLabel.innerText = "STATUS: SCANNING";
         signalElement.innerText = "SCANNING...";
         signalElement.className = "signal";
 
         setTimeout(() => {
-            // ১. অটোমেটিক র‍্যান্ডম পেয়ার সিলেক্ট
-            const randomPair = otcPairs[Math.floor(Math.random() * otcPairs.length)];
-            pairElement.innerText = randomPair;
+            let chosenPair = selectElement.value;
 
-            // ২. অটোমেটিক সিগন্যাল (CALL/PUT)
+            // যদি Auto সিলেক্ট করা থাকে, তবে র্যান্ডম পেয়ার আসবে
+            if (chosenPair === "AUTO") {
+                chosenPair = otcPairs[Math.floor(Math.random() * otcPairs.length)];
+            }
+
+            // সিগন্যাল (CALL/PUT) জেনারেট
             const isCall = Math.random() > 0.5;
             if (isCall) {
                 signalElement.innerText = "CALL (UP 🟢)";
@@ -140,18 +154,18 @@
                 signalElement.className = "signal put";
             }
 
-            // ৩. অটোমেটিক কনফিডেন্স (৮২% - ৯৮%)
+            // কনফিডেন্স
             const confidence = Math.floor(Math.random() * 17) + 82;
             confidenceElement.innerText = "Confidence: " + confidence + "%";
 
-            // ৪. অটোমেটিক সময় ও কাউন্টডাউন
+            // সময়
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             timeElement.innerText = "Entry Time: " + hours + ":" + minutes;
-            statusLabel.innerText = "STATUS: ACTIVE";
+            statusLabel.innerText = "STATUS: ACTIVE (" + chosenPair + ")";
 
-        }, 1200);
+        }, 1000);
     }
 </script>
 
