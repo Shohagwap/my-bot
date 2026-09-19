@@ -102,22 +102,48 @@
 <body>
 
 <div class="bot-container">
-    <!-- কারেন্সি সিলেক্ট করার ড্রপডাউন অপশন -->
+    <!-- স্ক্রিনশটের সব পেয়ার যুক্ত করা ড্রপডাউন মেনু -->
     <select id="currency-select" class="select-box">
         <option value="AUTO">🔄 Auto (Random Pairs)</option>
-        <option value="BRL/USD (OTC)">BRL/USD (OTC)</option>
         <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
         <option value="USD/MXN (OTC)">USD/MXN (OTC)</option>
-        <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
-        <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+        <option value="NZD/CHF (OTC)">NZD/CHF (OTC)</option>
+        <option value="AUD/CHF (OTC)">AUD/CHF (OTC)</option>
         <option value="USD/NGN (OTC)">USD/NGN (OTC)</option>
-        <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
+        <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
         <option value="AUD/USD (OTC)">AUD/USD (OTC)</option>
+        <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+        <option value="GBP/AUD (OTC)">GBP/AUD (OTC)</option>
+        <option value="NZD/USD (OTC)">NZD/USD (OTC)</option>
+        <option value="EUR/GBP (OTC)">EUR/GBP (OTC)</option>
+        <option value="NZD/CAD (OTC)">NZD/CAD (OTC)</option>
+        <option value="USD/DZD (OTC)">USD/DZD (OTC)</option>
+        <option value="AUD/NZD (OTC)">AUD/NZD (OTC)</option>
+        <option value="GBP/JPY (OTC)">GBP/JPY (OTC)</option>
+        <option value="CHF/JPY (OTC)">CHF/JPY (OTC)</option>
+        <option value="EUR/CHF (OTC)">EUR/CHF (OTC)</option>
+        <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
+        <option value="USD/CHF (OTC)">USD/CHF (OTC)</option>
+        <option value="USD/IDR (OTC)">USD/IDR (OTC)</option>
+        <option value="USD/PHP (OTC)">USD/PHP (OTC)</option>
+        <option value="USD/ZAR (OTC)">USD/ZAR (OTC)</option>
+        <option value="AUD/JPY (OTC)">AUD/JPY (OTC)</option>
+        <option value="CAD/CHF (OTC)">CAD/CHF (OTC)</option>
         <option value="EUR/AUD (OTC)">EUR/AUD (OTC)</option>
+        <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
+        <option value="NZD/JPY (OTC)">NZD/JPY (OTC)</option>
+        <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
+        <option value="USD/COP (OTC)">USD/COP (OTC)</option>
+        <option value="USD/EGP (OTC)">USD/EGP (OTC)</option>
+        <option value="USD/JPY (OTC)">USD/JPY (OTC)</option>
+        <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+        <option value="GBP/NZD (OTC)">GBP/NZD (OTC)</option>
+        <option value="EUR/NZD (OTC)">EUR/NZD (OTC)</option>
+        <option value="GBP/CAD (OTC)">GBP/CAD (OTC)</option>
     </select>
 
     <div class="bot-card">
-        <div class="pair-title" id="pair-display">BRL/USD (OTC)</div>
+        <div class="pair-title" id="pair-display">USD/BRL (OTC)</div>
         <div class="timer" id="time-display">Entry Time: --:--</div>
 
         <div class="status-box">
@@ -132,10 +158,15 @@
 
 <script>
     const otcPairs = [
-        "BRL/USD (OTC)", "USD/BRL (OTC)", "USD/MXN (OTC)", "NZD/CHF (OTC)", 
-        "AUD/CHF (OTC)", "USD/NGN (OTC)", "AUD/CAD (OTC)", "AUD/USD (OTC)", 
-        "GBP/USD (OTC)", "GBP/AUD (OTC)", "NZD/USD (OTC)", "EUR/GBP (OTC)", 
-        "EUR/USD (OTC)", "USD/JPY (OTC)", "GBP/JPY (OTC)", "EUR/AUD (OTC)"
+        "USD/BRL (OTC)", "USD/MXN (OTC)", "NZD/CHF (OTC)", "AUD/CHF (OTC)", 
+        "USD/NGN (OTC)", "AUD/CAD (OTC)", "AUD/USD (OTC)", "GBP/USD (OTC)", 
+        "GBP/AUD (OTC)", "NZD/USD (OTC)", "EUR/GBP (OTC)", "NZD/CAD (OTC)", 
+        "USD/DZD (OTC)", "AUD/NZD (OTC)", "GBP/JPY (OTC)", "CHF/JPY (OTC)", 
+        "EUR/CHF (OTC)", "EUR/JPY (OTC)", "USD/CHF (OTC)", "USD/IDR (OTC)", 
+        "USD/PHP (OTC)", "USD/ZAR (OTC)", "AUD/JPY (OTC)", "CAD/CHF (OTC)", 
+        "EUR/AUD (OTC)", "EUR/USD (OTC)", "NZD/JPY (OTC)", "USD/ARS (OTC)", 
+        "USD/COP (OTC)", "USD/EGP (OTC)", "USD/JPY (OTC)", "USD/PKR (OTC)", 
+        "GBP/NZD (OTC)", "EUR/NZD (OTC)", "GBP/CAD (OTC)"
     ];
 
     function generateSignal() {
@@ -153,14 +184,12 @@
         setTimeout(() => {
             let chosenPair = selectElement.value;
 
-            // যদি Auto সিলেক্ট করা থাকে তবে র্যান্ডম পেয়ার আসবে, না হলে ড্রপডাউনের পেয়ারটি দেখাবে
             if (chosenPair === "AUTO") {
                 chosenPair = otcPairs[Math.floor(Math.random() * otcPairs.length)];
             }
             
             pairElement.innerText = chosenPair;
 
-            // সিগন্যাল (CALL/PUT) জেনারেট
             const isCall = Math.random() > 0.5;
             if (isCall) {
                 signalElement.innerText = "CALL (UP 🟢)";
@@ -170,11 +199,9 @@
                 signalElement.className = "signal put";
             }
 
-            // কনফিডেন্স
             const confidence = Math.floor(Math.random() * 17) + 82;
             confidenceElement.innerText = "Confidence: " + confidence + "%";
 
-            // সময়
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
